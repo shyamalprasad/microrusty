@@ -1,4 +1,4 @@
-/* Memory layout of the LM3S6965 microcontroller */
+/* Memory layout of the Microbit V2 Nordic nRF52833 Microcontroller */
 /* 1K = 1 KiBi = 1024 bytes */
 MEMORY
 {
@@ -22,10 +22,36 @@ SECTIONS
     KEEP(*(.vector_table.reset_vector));
   } > FLASH
 
+  /* The code sits in read only memory in the .text segment */
   .text :
   {
     *(.text .text.*);
   } > FLASH
+
+
+  /* All read only static data goes into .rodata */
+  .rodata :
+  {
+    *(.rodata .rodata.*);
+  } > FLASH
+
+  /* Statically allocated but uninitialized data ("Block Starting Symbol") */
+  .bss :
+  {
+    _sbss = .;
+    *(.bss .bss.*);
+    _ebss = .;
+  } > RAM
+
+  /* Read/write statically allocated data */
+  .data : AT(ADDR(.rodata) + SIZEOF(.rodata))
+  {
+    _sdata = .;
+    *(.data .data.*);
+    _edata = .;
+  } > RAM
+
+  _sidata = LOADADDR(.data);
 
   /DISCARD/ :
   {
