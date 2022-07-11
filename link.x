@@ -13,6 +13,7 @@ EXTERN(RESET_VECTOR);
 
 SECTIONS
 {
+  /* Vector table for Cortex-M processor starts at 0x0 (FLASH) */
   .vector_table ORIGIN(FLASH) :
   {
     /* First entry: initial Stack Pointer value */
@@ -21,6 +22,7 @@ SECTIONS
     /* Second entry: reset vector */
     KEEP(*(.vector_table.reset_vector));
   } > FLASH
+
 
   /* The code sits in read only memory in the .text segment */
   .text :
@@ -32,7 +34,11 @@ SECTIONS
   /* All read only static data goes into .rodata */
   .rodata :
   {
+    . = ALIGN(4);
+    _srodata = .;
     *(.rodata .rodata.*);
+    . = ALIGN(4);
+    _erodata = .;
   } > FLASH
 
   /* Statically allocated but uninitialized data ("Block Starting Symbol") */
@@ -40,21 +46,35 @@ SECTIONS
   {
     _sbss = .;
     *(.bss .bss.*);
+    . = ALIGN(4);
     _ebss = .;
   } > RAM
 
-  /* Read/write statically allocated data */
-  .data : AT(ADDR(.rodata) + SIZEOF(.rodata))
+  /* Statically allocated data is writable*/
+  .data : AT(_erodata) /* LMA is right after .rodata in ROM */
   {
+    . = ALIGN(4); /* VMA starts on word boundary */
     _sdata = .;
     *(.data .data.*);
+    . = ALIGN(4); /* VMA ends on word boundary */
     _edata = .;
   } > RAM
 
-  _sidata = LOADADDR(.data);
 
   /DISCARD/ :
   {
     *(.ARM.exidx .ARM.exidx.*);
   }
 }
+
+ASSERT(ADDR(.text) % 4 == 0, ".text should be word aligned");
+
+ASSERT(_erodata % 4 == 0, ".rodata should end word algined");
+
+ASSERT(_sbss == ORIGIN(RAM), ".bss should be at start of RAM");
+ASSERT(_sbss % 4 == 0, ".bss should start word algined");
+ASSERT(_ebss % 4 == 0, ".bss should end word algined");
+
+ASSERT(LOADADDR(.data) == _erodata, ".data LMA should be at end of .rodata");
+ASSERT(_sdata % 4 == 0, ".data VMA should start word algined");
+ASSERT(_edata % 4 == 0, ".data VMA should end word algined");
