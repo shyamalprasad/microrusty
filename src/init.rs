@@ -59,3 +59,56 @@ macro_rules! entry {
         }
     };
 }
+
+// The default exception handler set up on initialization
+// It should not be used anywhere else!
+#[no_mangle]
+extern "C" fn UnhandledException() {
+    loop {}
+}
+
+// The 8 standard Cortex-M exception handlers
+// If these functions are not defined, the linker script will set
+// them to UnhandledException
+extern "C" {
+    fn NMI();
+    fn HardFault();
+    fn MMFault();
+    fn BusFault();
+    fn UsageFault();
+    fn SVCall();
+    fn PendSV();
+    fn SysTick();
+}
+
+// A union type to set a reference to an exception handler
+// or to set a 32 bit word to zero (or, really, any u32 value).
+pub union ExceptionHandler {
+    reserved: u32,
+    handler: unsafe extern "C" fn(),
+}
+
+// Cortex-M defines 14 standard exceptions to follow the Reset Vector
+// Note that the Reset vector must never return, while exception
+// handlers normally do so, which is why the Reset vector is note
+// initialized as an ExceptionHandler
+#[link_section = ".vector_table.exceptions"]
+#[no_mangle]
+pub static EXCEPTIONS: [ExceptionHandler; 14] = [
+    ExceptionHandler { handler: NMI },
+    ExceptionHandler { handler: HardFault },
+    ExceptionHandler { handler: MMFault },
+    ExceptionHandler { handler: BusFault },
+    ExceptionHandler {
+        handler: UsageFault,
+    },
+    ExceptionHandler { reserved: 0 },
+    ExceptionHandler { reserved: 0 },
+    ExceptionHandler { reserved: 0 },
+    ExceptionHandler { reserved: 0 },
+    ExceptionHandler { handler: SVCall },
+    ExceptionHandler { reserved: 0 },
+    ExceptionHandler { reserved: 0 },
+    ExceptionHandler { handler: PendSV },
+    ExceptionHandler { handler: SysTick },
+];

@@ -21,6 +21,9 @@ SECTIONS
 
     /* Second entry: reset vector */
     KEEP(*(.vector_table.reset_vector));
+
+    /* The 14 Cortex-M exception handler entriesx must follow */
+    KEEP(*(.vector_table.exceptions));
   } > FLASH
 
 
@@ -66,6 +69,16 @@ SECTIONS
     *(.ARM.exidx .ARM.exidx.*);
   }
 }
+
+/* Provide defaults for the 8 Cortex-M exceptions */
+PROVIDE(NMI = UnhandledException);
+PROVIDE(HardFault = UnhandledException);
+PROVIDE(MMFault = UnhandledException);
+PROVIDE(BusFault = UnhandledException);
+PROVIDE(UsageFault = UnhandledException);
+PROVIDE(SVCall = UnhandledException);
+PROVIDE(PendSV = UnhandledException);
+PROVIDE(SysTick = UnhandledException);
 
 ASSERT(ADDR(.text) % 4 == 0, ".text should be word aligned");
 
