@@ -1,0 +1,12 @@
+[default.probe]
+protocol = "Swd"
+
+[default.general]
+chip = "nrf52833_xxAA" # I'm using a micro:bit v2
+
+[default.reset]
+halt_afterwards = true # I always want to use GDB
+
+[default.gdb]
+enabled = true
+gdb_connection_string = "127.0.0.1:3333"
