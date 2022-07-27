@@ -2,7 +2,10 @@
 #![no_std]
 
 mod init;
+mod led;
 use core::panic::PanicInfo;
+
+use led::init_led_matrix;
 
 static HELLO: &str = "hello, world"; /* goes into .rodata */
 static mut MZERO: u8 = 0; /* goes into .bss */
@@ -17,6 +20,7 @@ pub fn main() -> ! {
     let _z1 = unsafe { &MONE };
     let _z2 = unsafe { &MTWO };
     let _z3 = unsafe { &MTHREE };
+    init_led_matrix();
     loop {}
 }
 
