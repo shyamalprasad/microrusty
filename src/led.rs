@@ -20,21 +20,91 @@
 // Row 4 P0.24
 // Row 5 P0.19
 
+// The address of the GPIO register sets
+const P0: u32 = 0x50000000;
+const P1: u32 = 0x50000300;
+
+// Register offsets
+const REG_DIR: u32 = 0x518;
+const REG_SET: u32 = 0x508;
+const REG_CLR: u32 = 0x50c;
+
+// Bit masks
+const P0_ROW_1: u32 = 0x1 << 21;
+const P0_ROW_2: u32 = 0x1 << 22;
+const P0_ROW_3: u32 = 0x1 << 15;
+const P0_ROW_4: u32 = 0x1 << 24;
+const P0_ROW_5: u32 = 0x1 << 19;
+
+const P0_COL_1: u32 = 0x1 << 28;
+const P0_COL_2: u32 = 0x1 << 11;
+const P0_COL_3: u32 = 0x1 << 31;
+const P1_COL_4: u32 = 0x1 << 5;
+const P0_COL_5: u32 = 0x1 << 30;
+
+const P0_ROW_MASK: u32 = P0_ROW_1 | P0_ROW_2 | P0_ROW_3 | P0_ROW_4 | P0_ROW_5;
+const P0_COL_MASK: u32 = P0_COL_1 | P0_COL_2 | P0_COL_3 | P0_COL_5;
+const P1_COL_MASK: u32 = P1_COL_4;
+
+const P0_MASK: u32 = P0_ROW_MASK | P0_COL_MASK; //0xd1688800;
+const P1_MASK: u32 = P1_COL_MASK; // 0x20
 
 pub fn init_led_matrix() {
-    // Allows rows and columns are on P0, except col 4 is on P1.05
-    const P0: u32 = 0x50000000;
-    const P1: u32 = 0x50000300;
-
     // Set DIR register for outputs on the LED matrix
     unsafe {
-	let p0_dir_set  = (P0 + 0x518) as *mut u32;
-	let p1_dir_set = (P1 + 0x518) as *mut u32;
-	// P0 leading bits  (31, 30, 28), (24), (22, 21), (19), (15), (11)
-	*p0_dir_set = 0xd1688800;
-	// P1 bits: (5)
-	*p1_dir_set = 0x00000020;
+        // Set all matrix row/col GPIO lines to output
+        *((P0 + REG_DIR) as *mut u32) = P0_MASK;
+        *((P1 + REG_DIR) as *mut u32) = P1_MASK;
+
+        *((P0 + REG_CLR) as *mut u32) = P0_MASK;
+        *((P1 + REG_CLR) as *mut u32) = P1_MASK;
     }
     // Leave PIN_CNF unchanged because the only bit we need to set
     // right now is the output direction, which is the same as DIR
+}
+
+pub fn flash() {
+    let p0_set = (P0 + REG_SET) as *mut u32;
+    let p0_clr = (P0 + REG_CLR) as *mut u32;
+    unsafe {
+        // Turn on each row in sequence
+        *p0_set = P0_ROW_1;
+        *p0_clr = P0_ROW_1;
+
+        *p0_set = P0_ROW_2;
+        *p0_clr = P0_ROW_2;
+
+        *p0_set = P0_ROW_3;
+        *p0_clr = P0_ROW_3;
+
+        *p0_set = P0_ROW_4;
+        *p0_clr = P0_ROW_4;
+
+        *p0_set = P0_ROW_5;
+        *p0_clr = P0_ROW_5;
+    }
+
+    // Now turn on each column in sequence
+    let p1_set = (P1 + REG_SET) as *mut u32;
+    let p1_clr = (P1 + REG_CLR) as *mut u32;
+    unsafe {
+        // Set all matrix lines high
+        *p1_set = P1_MASK;
+        *p0_set = P0_MASK;
+
+        *p0_clr = P0_COL_1;
+        *p0_set = P0_COL_1;
+
+        *p0_clr = P0_COL_2;
+        *p0_set = P0_COL_2;
+
+        *p0_clr = P0_COL_3;
+        *p0_set = P0_COL_3;
+
+        *p1_clr = P1_COL_4;
+        *p1_set = P1_COL_4;
+
+        *p0_clr = P0_COL_5;
+        *p0_set = P0_COL_5;
+    }
 }
