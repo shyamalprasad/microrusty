@@ -22,7 +22,7 @@ SECTIONS
     /* Second entry: reset vector */
     KEEP(*(.vector_table.reset_vector));
 
-    /* The 14 Cortex-M exception handler entriesx must follow */
+    /* At least 14 Cortex-M exception handler entries must follow */
     KEEP(*(.vector_table.exceptions));
   } > FLASH
 

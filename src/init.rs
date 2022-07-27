@@ -90,7 +90,7 @@ pub union ExceptionHandler {
 
 // Cortex-M defines 14 standard exceptions to follow the Reset Vector
 // Note that the Reset vector must never return, while exception
-// handlers normally do so, which is why the Reset vector is note
+// handlers normally do return, which is why the Reset vector is not
 // initialized as an ExceptionHandler
 #[link_section = ".vector_table.exceptions"]
 #[no_mangle]
