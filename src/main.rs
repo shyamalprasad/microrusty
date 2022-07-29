@@ -26,5 +26,6 @@ pub fn main() -> ! {
 
 #[panic_handler]
 fn panic(_panic: &PanicInfo<'_>) -> ! {
+    led::all_on();
     loop {}
 }
