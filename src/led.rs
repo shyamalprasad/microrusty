@@ -21,6 +21,8 @@
 // illuminate only the enabled LEDS in a single column, and turn off
 // all the other columns.
 
+use core::arch::asm;
+
 // The address of the GPIO register sets
 const P0: u32 = 0x50000000;
 const P1: u32 = 0x50000300;
@@ -200,6 +202,11 @@ pub fn flash() {
     }
     for i in 0..5 {
         show_column(&columns, i);
+	for i in 0..100000 {
+	    unsafe {
+		asm!("nop");
+	    }
+	}
     }
     all_off(); // turn off matrix to avoid last column being overly bright!
 }
